@@ -117,6 +117,12 @@ def test(args=None):
             exp_id = meta[e]['exp_id']
             frames = meta[e]['frames']
             save_path = os.path.join(save_path_prefix, video_name, exp_id)
+            
+            # Resume logic: Check if this expression has already been fully processed
+            if os.path.exists(save_path) and len([f for f in os.listdir(save_path) if f.endswith('.png')]) == len(frames):
+                print(f"Skipping: video={video_name}, exp_id={exp_id} (Already processed, resuming...)")
+                continue
+
             if not os.path.exists(save_path):
                 os.makedirs(save_path)
 
