@@ -56,14 +56,34 @@ def test(args=None):
     if not os.path.exists(save_path_prefix):
         os.makedirs(save_path_prefix)
     root = args.data_root if (args is not None and args.data_root is not None) else '../DB/RVOS/YTVOS'
+    
+    # Auto-detect nested 'rvos' subfolder
+    if os.path.isdir(os.path.join(root, 'rvos')):
+        root = os.path.join(root, 'rvos')
+
     img_folder = os.path.join(root, 'valid', 'JPEGImages')
+    # Check for valid/valid/JPEGImages
+    if not os.path.exists(img_folder) and os.path.exists(os.path.join(root, 'valid', 'valid', 'JPEGImages')):
+        img_folder = os.path.join(root, 'valid', 'valid', 'JPEGImages')
     if os.path.exists(os.path.join(img_folder, 'JPEGImages')):
         img_folder = os.path.join(img_folder, 'JPEGImages')
+
     meta_file = os.path.join(root, 'meta_expressions', 'valid', 'meta_expressions.json')
+    # Check for meta_expressions/meta_expressions/valid/meta_expressions.json
+    if not os.path.exists(meta_file) and os.path.exists(os.path.join(root, 'meta_expressions', 'meta_expressions', 'valid', 'meta_expressions.json')):
+        meta_file = os.path.join(root, 'meta_expressions', 'meta_expressions', 'valid', 'meta_expressions.json')
+
+    print(f'[INFO] Using meta_file: {meta_file}')
+    print(f'[INFO] Using img_folder: {img_folder}')
+
     with open(meta_file, 'r') as f:
         data = json.load(f)['videos']
     valid_test_videos = set(data.keys())
+    
     test_meta_file = os.path.join(root, 'meta_expressions', 'test', 'meta_expressions.json')
+    # Check for meta_expressions/meta_expressions/test/meta_expressions.json
+    if not os.path.exists(test_meta_file) and os.path.exists(os.path.join(root, 'meta_expressions', 'meta_expressions', 'test', 'meta_expressions.json')):
+        test_meta_file = os.path.join(root, 'meta_expressions', 'meta_expressions', 'test', 'meta_expressions.json')
     with open(test_meta_file, 'r') as f:
         test_data = json.load(f)['videos']
     test_videos = set(test_data.keys())
