@@ -47,7 +47,7 @@ def test(args=None):
     save_path_prefix = os.path.join(output_dir, 'Ref_YTVOS_val')
     if not os.path.exists(save_path_prefix):
         os.makedirs(save_path_prefix)
-    root = '../DB/RVOS/YTVOS'
+    root = args.data_root if (args is not None and args.data_root is not None) else '../DB/RVOS/YTVOS'
     img_folder = os.path.join(root, 'valid', 'JPEGImages')
     meta_file = os.path.join(root, 'meta_expressions', 'valid', 'meta_expressions.json')
     with open(meta_file, 'r') as f:
@@ -383,6 +383,7 @@ if __name__ == '__main__':
     parser.add_argument('--tracker', type=str, choices=['cutie', 'sam2'], default='sam2')
     parser.add_argument('--sam2_config', type=str, default='sam2_hiera_l.yaml')
     parser.add_argument('--sam2_checkpoint', type=str, default='checkpoints/sam2_hiera_large.pt')
+    parser.add_argument('--data_root', type=str, default=None)
     args = parser.parse_args()
 
     torch.cuda.set_device(0)
