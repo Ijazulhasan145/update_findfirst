@@ -253,7 +253,7 @@ def test(args=None):
                         mask = torch.zeros((resize_shape[0][0], resize_shape[0][1]), device='cuda')
                         
                     # convert format and save
-                    mask = mask.detach().cpu().numpy().astype(np.float32)
+                    mask = mask.squeeze().detach().cpu().numpy().astype(np.uint8)
                     mask = Image.fromarray(mask * 255).convert('L')
                     save_file = os.path.join(save_path, frames[i] + '.png')
                     mask.save(save_file)
@@ -311,7 +311,7 @@ def test(args=None):
                         processor.clear_memory()
                         
                     # convert format and save
-                    mask = mask.detach().cpu().numpy().astype(np.float32)
+                    mask = mask.squeeze().detach().cpu().numpy().astype(np.uint8)
                     mask = Image.fromarray(mask * 255).convert('L')
                     save_file = os.path.join(save_path, frames[i] + '.png')
                     mask.save(save_file)
@@ -340,7 +340,7 @@ def test(args=None):
                         processor.clear_memory()
                         
                     # convert format and save
-                    mask = mask.detach().cpu().numpy().astype(np.float32)
+                    mask = mask.squeeze().detach().cpu().numpy().astype(np.uint8)
                     mask = Image.fromarray(mask * 255).convert('L')
                     save_file = os.path.join(save_path, frames[i] + '.png')
                     mask.save(save_file)
