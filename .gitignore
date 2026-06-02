@@ -1,0 +1,23 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.ipynb_checkpoints
+.DS_Store
+Thumbs.db
+
+# Virtual environments
+venv/
+.venv/
+env/
+envJarvis/
+
+# Local samples/outputs
+sample/result.mp4
+outputs/
+
+# Large weights (if downloaded)
+weights/*.pth
+weights/*.pt
+checkpoints/*.pth
+checkpoints/*.pt
