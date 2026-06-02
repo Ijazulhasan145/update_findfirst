@@ -15,34 +15,44 @@ class SAM2Tracker:
         self.checkpoint_path = None
         self.video_path = None
 
+    def _resolve_config_name(self, config):
+        """
+        Resolve the Hydra config_name from either a full yaml path or a bare name.
+        SAM2 2.1 configs live in configs/sam2.1/ so Hydra needs 'sam2.1/sam2.1_hiera_l',
+        not just 'sam2.1_hiera_l'.
+        """
+        import sam2 as _sam2_pkg
+
+        configs_root = os.path.join(os.path.dirname(_sam2_pkg.__file__), 'configs')
+        basename = os.path.basename(config)            # e.g. sam2.1_hiera_l.yaml
+        name_no_ext = os.path.splitext(basename)[0]   # e.g. sam2.1_hiera_l
+
+        # Search recursively inside the installed sam2 configs directory
+        for dirpath, _, files in os.walk(configs_root):
+            for f in files:
+                if os.path.splitext(f)[0] == name_no_ext:
+                    rel = os.path.relpath(os.path.join(dirpath, f), configs_root)
+                    # Return POSIX-style without .yaml extension
+                    return os.path.splitext(rel)[0].replace('\\', '/')
+
+        # Fallback: bare name (works for sam2 v1 which had flat configs/)
+        return name_no_ext
+
     def initialize(self, video_path_or_frames, checkpoint, config, device='cuda'):
         self.device = device
-        
+
         # Load predictor if not already loaded or if checkpoint/config changed
         if self.predictor is None or self.config_path != config or self.checkpoint_path != checkpoint:
             from sam2.build_sam import build_sam2_video_predictor
-            import sam2 as _sam2_pkg
 
-            # Resolve config: accept full path OR bare name
-            if os.path.isfile(config):
-                # Full path given (e.g. from Kaggle) — copy into sam2 configs dir
-                import shutil as _shutil
-                sam2_configs_dir = os.path.join(os.path.dirname(_sam2_pkg.__file__), 'configs')
-                dest = os.path.join(sam2_configs_dir, os.path.basename(config))
-                if not os.path.exists(dest):
-                    _shutil.copy2(config, dest)
-                config_name = os.path.splitext(os.path.basename(config))[0]  # strip .yaml
-            else:
-                # Bare name given — strip .yaml if present
-                config_name = os.path.splitext(os.path.basename(config))[0]
-
-            print(f"Loading SAM2 model from checkpoint: {checkpoint} with config: {config_name}...")
+            config_name = self._resolve_config_name(config)
+            print(f"Loading SAM2 model from checkpoint: {checkpoint}")
+            print(f"  Using config: {config_name}")
             self.predictor = build_sam2_video_predictor(config_name, checkpoint, device=device)
             self.config_path = config
             self.checkpoint_path = checkpoint
 
 
-        # Reset previous inference state
         self.reset()
 
         # Handle different input formats
