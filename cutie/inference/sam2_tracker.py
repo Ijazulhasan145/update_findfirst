@@ -104,7 +104,21 @@ class SAM2Tracker:
             # Step 2: Resolve config name for Hydra
             config_name = _resolve_config_name(config, sam2_pkg_dir)
 
-            # Step 3: Build predictor
+            # Step 3: Pre-initialize Hydra with explicit config directory.
+            # SAM2's build_sam.py does `initialize_config_module("sam2")` at
+            # import time, which uses pkg://sam2 — this fails for namespace
+            # packages. By pre-initializing with the absolute config dir,
+            # the module-level `if not is_initialized()` check will skip the
+            # broken pkg://sam2 path.
+            from hydra.core.global_hydra import GlobalHydra
+            from hydra import initialize_config_dir
+
+            GlobalHydra.instance().clear()
+            configs_dir = os.path.abspath(os.path.join(sam2_pkg_dir, 'configs'))
+            initialize_config_dir(config_dir=configs_dir, version_base="1.2")
+            print(f"  [SAM2] Hydra initialized with config_dir: {configs_dir}")
+
+            # Step 4: Now import and build — Hydra already has the right path
             from sam2.build_sam import build_sam2_video_predictor
             print(f"  Loading SAM2 from: {checkpoint}")
             print(f"  Config: {config_name}")
