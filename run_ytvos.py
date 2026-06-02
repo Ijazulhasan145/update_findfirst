@@ -49,6 +49,8 @@ def test(args=None):
         os.makedirs(save_path_prefix)
     root = args.data_root if (args is not None and args.data_root is not None) else '../DB/RVOS/YTVOS'
     img_folder = os.path.join(root, 'valid', 'JPEGImages')
+    if os.path.exists(os.path.join(img_folder, 'JPEGImages')):
+        img_folder = os.path.join(img_folder, 'JPEGImages')
     meta_file = os.path.join(root, 'meta_expressions', 'valid', 'meta_expressions.json')
     with open(meta_file, 'r') as f:
         data = json.load(f)['videos']
