@@ -21,12 +21,26 @@ class SAM2Tracker:
         # Load predictor if not already loaded or if checkpoint/config changed
         if self.predictor is None or self.config_path != config or self.checkpoint_path != checkpoint:
             from sam2.build_sam import build_sam2_video_predictor
-            # Extract config name from the config path
-            config_name = os.path.basename(config)
+            import sam2 as _sam2_pkg
+
+            # Resolve config: accept full path OR bare name
+            if os.path.isfile(config):
+                # Full path given (e.g. from Kaggle) — copy into sam2 configs dir
+                import shutil as _shutil
+                sam2_configs_dir = os.path.join(os.path.dirname(_sam2_pkg.__file__), 'configs')
+                dest = os.path.join(sam2_configs_dir, os.path.basename(config))
+                if not os.path.exists(dest):
+                    _shutil.copy2(config, dest)
+                config_name = os.path.splitext(os.path.basename(config))[0]  # strip .yaml
+            else:
+                # Bare name given — strip .yaml if present
+                config_name = os.path.splitext(os.path.basename(config))[0]
+
             print(f"Loading SAM2 model from checkpoint: {checkpoint} with config: {config_name}...")
             self.predictor = build_sam2_video_predictor(config_name, checkpoint, device=device)
             self.config_path = config
             self.checkpoint_path = checkpoint
+
 
         # Reset previous inference state
         self.reset()
