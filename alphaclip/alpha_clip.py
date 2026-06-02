@@ -136,14 +136,14 @@ def load(name: str, alpha_vision_ckpt_pth="None", device: Union[str, torch.devic
             if jit:
                 warnings.warn(f"File {model_path} is not a JIT archive. Loading as a state dict instead")
                 jit = False
-            state_dict = torch.load(opened_file, map_location="cpu")
+            state_dict = torch.load(opened_file, map_location="cpu", weights_only=False)
 
     if not jit:
         model = build_model(state_dict or model.state_dict(), lora_adapt=lora_adapt, rank=rank).to(device)
         if str(device) == "cpu":
             model.float()
         if alpha_vision_ckpt_pth != "None":
-            model.visual.load_state_dict(torch.load(alpha_vision_ckpt_pth))
+            model.visual.load_state_dict(torch.load(alpha_vision_ckpt_pth, map_location="cpu", weights_only=False))
             model.eval() # merge lora params if exists (for inference only)
         return model, _transform(model.visual.input_resolution)
 
