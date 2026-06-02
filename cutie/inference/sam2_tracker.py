@@ -20,22 +20,32 @@ class SAM2Tracker:
         Resolve the Hydra config_name from either a full yaml path or a bare name.
         SAM2 2.1 configs live in configs/sam2.1/ so Hydra needs 'sam2.1/sam2.1_hiera_l',
         not just 'sam2.1_hiera_l'.
+        Works with both regular packages and namespace packages (where __file__ is None).
         """
-        import sam2 as _sam2_pkg
+        import inspect
+        from sam2.build_sam import build_sam2_video_predictor as _bsv
+        # Use inspect to locate the actual sam2 package directory
+        build_sam_path = inspect.getfile(_bsv)           # .../sam2/build_sam.py
+        sam2_pkg_dir = os.path.dirname(build_sam_path)   # .../sam2/
+        configs_root = os.path.join(sam2_pkg_dir, 'configs')
 
-        configs_root = os.path.join(os.path.dirname(_sam2_pkg.__file__), 'configs')
         basename = os.path.basename(config)            # e.g. sam2.1_hiera_l.yaml
         name_no_ext = os.path.splitext(basename)[0]   # e.g. sam2.1_hiera_l
 
+        print(f"  [SAM2] configs_root: {configs_root}")
+
         # Search recursively inside the installed sam2 configs directory
-        for dirpath, _, files in os.walk(configs_root):
-            for f in files:
-                if os.path.splitext(f)[0] == name_no_ext:
-                    rel = os.path.relpath(os.path.join(dirpath, f), configs_root)
-                    # Return POSIX-style without .yaml extension
-                    return os.path.splitext(rel)[0].replace('\\', '/')
+        if os.path.isdir(configs_root):
+            for dirpath, _, files in os.walk(configs_root):
+                for f in files:
+                    if os.path.splitext(f)[0] == name_no_ext:
+                        rel = os.path.relpath(os.path.join(dirpath, f), configs_root)
+                        result = os.path.splitext(rel)[0].replace('\\', '/')
+                        print(f"  [SAM2] resolved config: {result}")
+                        return result
 
         # Fallback: bare name (works for sam2 v1 which had flat configs/)
+        print(f"  [SAM2] fallback config name: {name_no_ext}")
         return name_no_ext
 
     def initialize(self, video_path_or_frames, checkpoint, config, device='cuda'):
