@@ -26,13 +26,21 @@ def test(args=None):
     tracker = args.tracker if args is not None else 'sam2'
     sam2_config = args.sam2_config if args is not None else 'sam2_hiera_l.yaml'
     sam2_checkpoint = args.sam2_checkpoint if args is not None else 'checkpoints/sam2_hiera_large.pt'
+    alpha_clip_ckpt = args.alpha_clip_ckpt if (args is not None and args.alpha_clip_ckpt is not None) else 'weights/clip_l14_336_grit_20m_4xe.pth'
     recovery_threshold = 0.5
 
     # initialize EVF-SAM
     tokenizer, evfsam = init_models()
 
-    # initialize Alpha-CLIP
-    clip, clip_preprocess = alphaclip.load('ViT-L/14@336px', alpha_vision_ckpt_pth='weights/clip_l14_336_grit_20m_4xe.pth', device='cuda')
+    # initialize Alpha-CLIP (auto-download weights if not found)
+    if not os.path.exists(alpha_clip_ckpt):
+        import urllib.request
+        print(f'[INFO] Alpha-CLIP weights not found at {alpha_clip_ckpt}. Downloading...')
+        os.makedirs(os.path.dirname(alpha_clip_ckpt) if os.path.dirname(alpha_clip_ckpt) else 'weights', exist_ok=True)
+        url = 'https://huggingface.co/SunzeY/AlphaClip/resolve/main/clip_l14_336_grit_20m_4xe.pth'
+        urllib.request.urlretrieve(url, alpha_clip_ckpt)
+        print(f'[INFO] Downloaded Alpha-CLIP weights to {alpha_clip_ckpt}')
+    clip, clip_preprocess = alphaclip.load('ViT-L/14@336px', alpha_vision_ckpt_pth=alpha_clip_ckpt, device='cuda')
     clip_preprocess_mask = transforms.Compose([transforms.Resize((336, 336)), transforms.Normalize(0.5, 0.26)])
 
     # initialize Tracker
@@ -391,6 +399,8 @@ if __name__ == '__main__':
     parser.add_argument('--tracker', type=str, choices=['cutie', 'sam2'], default='sam2')
     parser.add_argument('--sam2_config', type=str, default='sam2_hiera_l.yaml')
     parser.add_argument('--sam2_checkpoint', type=str, default='checkpoints/sam2_hiera_large.pt')
+    parser.add_argument('--alpha_clip_ckpt', type=str, default=None,
+                        help='Absolute path to Alpha-CLIP weights (clip_l14_336_grit_20m_4xe.pth)')
     parser.add_argument('--data_root', type=str, default=None)
     args = parser.parse_args()
 
