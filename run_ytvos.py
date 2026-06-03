@@ -109,6 +109,18 @@ def test(args=None):
         frames = data[video]['frames']
         video_len = len(frames)
 
+        # Fast resume check: if all expressions for this video are fully processed, skip loading frames
+        all_done = True
+        for i in range(num_expressions):
+            exp_id = expression_list[i]
+            save_path = os.path.join(save_path_prefix, video_name, exp_id)
+            if not (os.path.exists(save_path) and len([f for f in os.listdir(save_path) if f.endswith('.png')]) == video_len):
+                all_done = False
+                break
+        if all_done:
+            print(f"Skipping video={video_name} (All {num_expressions} expressions already processed)")
+            continue
+
         # input pre-process
         imgs_beit = []
         imgs_sam = []
