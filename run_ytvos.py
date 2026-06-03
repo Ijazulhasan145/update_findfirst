@@ -420,6 +420,11 @@ def test(args=None):
                     save_file = os.path.join(save_path, frames[i] + '.png')
                     mask.save(save_file)
 
+    import shutil
+    print(f"Tracking complete! Zipping the outputs from {output_dir}...")
+    zip_path = os.path.join(os.path.dirname(os.path.abspath(output_dir)), 'Ref_YTVOS_results')
+    shutil.make_archive(zip_path, 'zip', output_dir)
+    print(f"Zip created successfully at {zip_path}.zip!")
 
 if __name__ == '__main__':
     import argparse
