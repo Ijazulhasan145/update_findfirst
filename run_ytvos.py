@@ -282,7 +282,7 @@ def test(args=None):
                     if i in logits_dict:
                         mask = (logits_dict[i] > 0.0).float()
                     else:
-                        mask = torch.zeros((resize_shape[0][0], resize_shape[0][1]), device='cuda')
+                        mask = torch.zeros((original_size_list[0][0], original_size_list[0][1]), device='cuda')
                         
                     # convert format and save
                     mask = mask.squeeze().detach().cpu().numpy().astype(np.uint8)
@@ -431,7 +431,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--num_references', type=int, default=3)
     parser.add_argument('--min_frame_distance', type=int, default=15)
-    parser.add_argument('--multi_reference', action='store_true', default=False)
+    parser.add_argument('--multi_reference', action='store_true', default=True)
     parser.add_argument('--dynamic_recovery', action='store_true', default=False)
     parser.add_argument('--tracker', type=str, choices=['cutie', 'sam2'], default='sam2')
     parser.add_argument('--sam2_config', type=str, default='sam2_hiera_l.yaml')
